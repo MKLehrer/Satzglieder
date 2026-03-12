@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rechtschreib-Trainer</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f0f4ff;
+  --card: #ffffff;
+  --text: #1e1e2e;
+  --muted: #8888aa;
+  --shadow: 0 6px 24px rgba(80,80,180,0.10);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--bg);
+  min-height: 100vh;
+  color: var(--text);
+  overflow-x: hidden;
+}
+
+/* ── SCREENS ── */
+.screen { display: none; min-height: 100vh; }
+.screen.active { display: flex; flex-direction: column; align-items: center; }
+
+/* ════════════════════════
+   MENU
+════════════════════════ */
+#menu-screen {
+  background: linear-gradient(160deg, #667eea 0%, #a78bfa 60%, #f472b6 100%);
+  padding: 0;
+}
+
+.menu-top {
+  width: 100%;
+  padding: 48px 24px 32px;
+  text-align: center;
+}
+.menu-top h1 {
+  font-family: 'Baloo 2', cursive;
+  font-size: clamp(2rem, 7vw, 3.2rem);
+  color: white;
+  text-shadow: 0 3px 12px rgba(0,0,0,.2);
+}
+.menu-top p {
+  color: rgba(255,255,255,.85);
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-top: 8px;
+}
+
+.menu-wave {
+  width: 100%;
+  flex: 1;
+  background: var(--bg);
+  border-radius: 36px 36px 0 0;
+  padding: 32px 20px 60px;
+  max-width: 100%;
+}
+
+.menu-wave h2 {
+  font-family: 'Baloo 2', cursive;
+  font-size: 1.1rem;
+  color: var(--muted);
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 24px;
+}
+
+.topic-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+  gap: 12px;
+  max-width: 700px;
+  margin: 0 auto 28px;
+}
+
+.topic-btn {
+  background: white;
+  border: 2.5px solid transparent;
+  border-radius: 20px;
+  padding: 18px 12px 14px;
+  cursor: pointer;
+  text-align: center;
+  transition: transform .2s cubic-bezier(.34,1.56,.64,1), box-shadow .2s, border-color .2s;
+  box-shadow: 0 3px 12px rgba(0,0,0,.07);
+  position: relative;
+  overflow: hidden;
+}
+.topic-btn::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 5px;
+  background: var(--c, #667eea);
+  border-radius: 18px 18px 0 0;
+}
+.topic-btn:hover {
+  transform: translateY(-5px) scale(1.03);
+  box-shadow: 0 10px 28px rgba(100,100,220,.18);
+  border-color: var(--c, #667eea);
+}
+.topic-btn .t-icon { font-size: 2rem; display: block; margin-bottom: 8px; }
+.topic-btn .t-name { font-weight: 800; font-size: .92rem; line-height: 1.3; color: var(--text); }
+.topic-btn .t-count { font-size: .73rem; color: var(--muted); font-weight: 700; margin-top: 3px; }
+
+.start-all-btn {
+  display: block;
+  width: 100%;
+  max-width: 360px;
+  margin: 0 auto;
+  padding: 18px;
+  background: linear-gradient(135deg, #667eea, #a78bfa);
+  color: white;
+  border: none;
+  border-radius: 50px;
+  font-family: 'Baloo 2', cursive;
+  font-size: 1.3rem;
+  cursor: pointer;
+  box-shadow: 0 6px 0 rgba(80,40,180,.35);
+  transition: transform .15s, box-shadow .15s;
+}
+.start-all-btn:hover { transform: translateY(-3px); box-shadow: 0 9px 0 rgba(80,40,180,.35); }
+
+/* ════════════════════════
+   GAME
+════════════════════════ */
+#game-screen { justify-content: flex-start; padding: 0; }
+
+.topbar {
+  width: 100%;
+  background: white;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 2px 10px rgba(0,0,0,.07);
+  position: sticky; top: 0; z-index: 20;
+}
+.back-btn {
+  background: #f0f0fa;
+  border: none; border-radius: 50px;
+  padding: 8px 16px;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 800; font-size: .88rem;
+  cursor: pointer; color: #555;
+  white-space: nowrap;
+  transition: background .15s;
+}
+.back-btn:hover { background: #e0e0f5; }
+.topbar-mid { flex: 1; min-width: 0; }
+.topbar-title {
+  font-family: 'Baloo 2', cursive;
+  font-weight: 800; font-size: 1rem;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.topbar-sub { font-size: .74rem; color: var(--muted); font-weight: 700; }
+.hearts { font-size: 1.1rem; letter-spacing: 2px; }
+
+.prog-bar { width: 100%; height: 8px; background: #eee; }
+.prog-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #667eea, #f472b6);
+  transition: width .4s ease;
+  border-radius: 0 4px 4px 0;
+}
+
+.game-body {
+  width: 100%;
+  max-width: 620px;
+  padding: 28px 20px 60px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+/* Repeat badge */
+.repeat-badge {
+  background: linear-gradient(135deg, #f472b6, #fb923c);
+  color: white;
+  border-radius: 50px;
+  padding: 7px 20px;
+  font-family: 'Baloo 2', cursive;
+  font-size: 1rem;
+  font-weight: 800;
+  animation: badgePop .4s cubic-bezier(.34,1.56,.64,1);
+  display: flex; align-items: center; gap: 8px;
+}
+@keyframes badgePop { from{transform:scale(0);opacity:0} to{transform:scale(1);opacity:1} }
+
+/* Question card */
+.q-card {
+  background: white;
+  border-radius: 28px;
+  padding: 32px 26px 28px;
+  width: 100%;
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+.q-topic-pill {
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: .73rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 16px;
+  background: var(--c, #e8e8ff);
+  color: var(--ct, #5555cc);
+}
+.q-prompt {
+  font-size: .85rem;
+  font-weight: 700;
+  color: var(--muted);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.q-sentence {
+  font-size: clamp(1rem, 3.5vw, 1.25rem);
+  font-weight: 700;
+  color: #333;
+  line-height: 1.6;
+  min-height: 52px;
+}
+.q-sentence .blank {
+  display: inline-block;
+  border-bottom: 3px solid #667eea;
+  min-width: 80px;
+  color: #667eea;
+  font-weight: 800;
+  padding: 0 4px;
+}
+
+/* Options */
+.opts {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
+}
+
+.opt-btn {
+  flex: 1;
+  min-width: 120px;
+  max-width: 200px;
+  padding: 18px 14px;
+  background: white;
+  border: 2.5px solid #dde;
+  border-radius: 20px;
+  font-family: 'Nunito', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform .18s cubic-bezier(.34,1.56,.64,1), border-color .15s, background .15s, box-shadow .15s;
+  box-shadow: 0 3px 10px rgba(0,0,0,.06);
+  position: relative;
+}
+.opt-btn:hover:not(:disabled) {
+  transform: translateY(-4px) scale(1.04);
+  border-color: #667eea;
+  background: #f5f3ff;
+  box-shadow: 0 8px 20px rgba(100,100,200,.18);
+}
+.opt-btn:disabled { cursor: default; }
+.opt-btn.correct {
+  background: #e8faf0; border-color: #22c55e;
+  animation: correctPop .45s cubic-bezier(.34,1.56,.64,1);
+}
+.opt-btn.wrong {
+  background: #fff0f0; border-color: #f87171;
+  animation: wrongShake .38s ease;
+}
+@keyframes correctPop { 0%{transform:scale(1)} 55%{transform:scale(1.1)} 100%{transform:scale(1)} }
+@keyframes wrongShake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-7px)} 75%{transform:translateX(7px)} }
+
+/* Feedback */
+.feedback-area {
+  min-height: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+.fb-msg {
+  font-family: 'Baloo 2', cursive;
+  font-size: 1.25rem;
+  padding: 10px 24px;
+  border-radius: 16px;
+  animation: popIn .3s ease;
+  text-align: center;
+}
+.fb-msg.good { background: #dcfce7; color: #166534; }
+.fb-msg.bad  { background: #fee2e2; color: #991b1b; }
+@keyframes popIn { from{transform:scale(.5);opacity:0} 80%{transform:scale(1.05)} to{transform:scale(1);opacity:1} }
+
+.next-btn {
+  background: linear-gradient(135deg, #667eea, #a78bfa);
+  color: white; border: none; border-radius: 50px;
+  padding: 13px 38px;
+  font-family: 'Baloo 2', cursive; font-size: 1.15rem;
+  cursor: pointer;
+  box-shadow: 0 5px 0 rgba(80,30,180,.3);
+  transition: transform .15s, box-shadow .15s;
+  animation: popIn .3s ease;
+}
+.next-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 0 rgba(80,30,180,.3); }
+
+/* ════════════════════════
+   RESULT
+════════════════════════ */
+#result-screen {
+  background: linear-gradient(160deg, #667eea 0%, #a78bfa 60%, #f472b6 100%);
+  justify-content: center;
+  padding: 40px 20px;
+  gap: 20px;
+}
+
+.result-card {
+  background: white;
+  border-radius: 32px;
+  padding: 40px 32px;
+  max-width: 460px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 16px 40px rgba(0,0,0,.15);
+}
+.result-emoji { font-size: 4.5rem; display: block; animation: bounce 1s ease infinite; margin-bottom: 4px; }
+@keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-14px)} }
+.result-title { font-family: 'Baloo 2', cursive; font-size: 2.2rem; margin-bottom: 6px; }
+.result-score {
+  font-family: 'Baloo 2', cursive; font-size: 3.8rem; font-weight: 800;
+  background: linear-gradient(135deg,#667eea,#f472b6);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  line-height: 1;
+}
+.result-stars { font-size: 2.2rem; letter-spacing: 8px; margin: 10px 0; }
+.result-sub { color: var(--muted); font-weight: 700; font-size: .95rem; }
+
+/* Wrong words summary */
+.wrong-summary {
+  background: #fff7ed;
+  border-radius: 20px;
+  padding: 18px 20px;
+  max-width: 460px;
+  width: 100%;
+  box-shadow: 0 4px 14px rgba(0,0,0,.08);
+}
+.wrong-summary h3 {
+  font-family: 'Baloo 2', cursive;
+  font-size: 1.1rem;
+  color: #92400e;
+  margin-bottom: 14px;
+  display: flex; align-items: center; gap: 8px;
+}
+.wrong-list {
+  display: flex; flex-wrap: wrap; gap: 8px;
+}
+.wrong-chip {
+  background: white;
+  border: 2px solid #fbbf24;
+  border-radius: 12px;
+  padding: 6px 14px;
+  font-weight: 800;
+  font-size: .95rem;
+  color: #78350f;
+}
+
+.result-btns { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+.btn-main {
+  background: white; color: #667eea;
+  border: none; border-radius: 50px;
+  padding: 14px 30px;
+  font-family: 'Baloo 2', cursive; font-size: 1.15rem;
+  cursor: pointer;
+  box-shadow: 0 5px 0 rgba(0,0,0,.12);
+  transition: transform .15s;
+}
+.btn-main:hover { transform: translateY(-3px); }
+.btn-ghost {
+  background: rgba(255,255,255,.25); color: white;
+  border: 2px solid rgba(255,255,255,.6); border-radius: 50px;
+  padding: 14px 30px;
+  font-family: 'Baloo 2', cursive; font-size: 1.15rem;
+  cursor: pointer; transition: background .15s;
+}
+.btn-ghost:hover { background: rgba(255,255,255,.38); }
+
+/* confetti */
+.cp { position:fixed; width:10px; height:13px; border-radius:2px;
+  animation: cf 3s ease-in forwards; z-index:9999; pointer-events:none; }
+@keyframes cf { 0%{transform:translateY(-10px) rotateZ(0);opacity:1}
+  100%{transform:translateY(110vh) rotateZ(720deg);opacity:0} }
+
+@media(max-width:480px) {
+  .topic-grid { grid-template-columns: repeat(3, 1fr); }
+  .opt-btn { font-size: 1.05rem; padding: 14px 10px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ════ MENU ════ -->
+<div class="screen active" id="menu-screen">
+  <div class="menu-top">
+    <h1>✏️ Rechtschreib-<br>Trainer</h1>
+    <p>Wähle ein Thema oder übe alles!</p>
+  </div>
+  <div class="menu-wave">
+    <h2>📚 Themen wählen</h2>
+    <div class="topic-grid" id="topic-grid"></div>
+    <button class="start-all-btn" onclick="startGame('all')">🚀 Alle Themen üben</button>
+  </div>
+</div>
+
+<!-- ════ GAME ════ -->
+<div class="screen" id="game-screen">
+  <div class="topbar">
+    <button class="back-btn" onclick="goMenu()">← Menü</button>
+    <div class="topbar-mid">
+      <div class="topbar-title" id="tb-title">Thema</div>
+      <div class="topbar-sub" id="tb-sub">Frage 1 / 10</div>
+    </div>
+    <div class="hearts" id="tb-hearts">⭐ 0</div>
+  </div>
+  <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+
+  <div class="game-body">
+    <div id="repeat-badge-slot"></div>
+    <div class="q-card" id="q-card">
+      <div class="q-topic-pill" id="q-pill"></div>
+      <div class="q-prompt">Welche Schreibweise ist richtig?</div>
+      <div class="q-sentence" id="q-sentence"></div>
+    </div>
+    <div class="opts" id="opts"></div>
+    <div class="feedback-area" id="feedback-area"></div>
+  </div>
+</div>
+
+<!-- ════ RESULT ════ -->
+<div class="screen" id="result-screen">
+  <div class="result-card">
+    <span class="result-emoji" id="r-emoji">🏆</span>
+    <div class="result-title" id="r-title">Super!</div>
+    <div class="result-score" id="r-score">8/10</div>
+    <div class="result-stars" id="r-stars">⭐⭐⭐</div>
+    <div class="result-sub" id="r-sub"></div>
+  </div>
+  <div class="wrong-summary" id="wrong-summary" style="display:none">
+    <h3>🔁 Diese Wörter nochmal üben:</h3>
+    <div class="wrong-list" id="wrong-list"></div>
+  </div>
+  <div class="result-btns">
+    <button class="btn-main" id="r-retry" onclick="retryWrong()">🔁 Falsche wiederholen</button>
+    <button class="btn-main" onclick="retryAll()">🔄 Nochmal</button>
+    <button class="btn-ghost" onclick="goMenu()">🏠 Menü</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+//  WÖRTER-DATEN
+//  Jedes Objekt: { correct, options: [richtig, falsch1, falsch2?], sentence }
+//  sentence enthält ___ als Platzhalter
+// ══════════════════════════════════════════════════════════════
+const TOPICS = [
+  {
+    id: "pf", name: "Wörter mit PF", icon: "🐘", color: "#f97316", colorLight: "#fff7ed", colorText: "#9a3412",
+    words: [
+      { correct:"Pferd",     options:["Pferd","Ferd","Perd"],         sentence:"Das ___ galoppiert über die Wiese." },
+      { correct:"Pflanze",   options:["Pflanze","Flanze","Pflantse"],  sentence:"Die ___ braucht Wasser und Sonne." },
+      { correct:"Apfel",     options:["Apfel","Abfel","Apfell"],       sentence:"Ich esse jeden Tag einen ___." },
+      { correct:"Kopf",      options:["Kopf","Kobf","Kopff"],          sentence:"Mein ___ tut ein bisschen weh." },
+      { correct:"Pfanne",    options:["Pfanne","Fanne","Pfannne"],     sentence:"Das Ei brutzelt in der ___." },
+      { correct:"Strumpf",   options:["Strumpf","Strumbf","Strunpf"],  sentence:"Mein ___ hat ein Loch." },
+      { correct:"Pfirsich",  options:["Pfirsich","Firsich","Pfierisich"], sentence:"Der ___ schmeckt süß und saftig." },
+      { correct:"Pfeil",     options:["Pfeil","Feil","Pfail"],         sentence:"Der ___ trifft die Zielscheibe." },
+      { correct:"Pfütze",    options:["Pfütze","Fütze","Pfuetze"],     sentence:"Das Kind springt in die ___." },
+      { correct:"Kämpfer",   options:["Kämpfer","Kämfer","Kaempfer"],  sentence:"Er ist ein mutiger ___." },
+    ]
+  },
+  {
+    id: "sp", name: "Wörter mit SP", icon: "🌟", color: "#eab308", colorLight: "#fefce8", colorText: "#854d0e",
+    words: [
+      { correct:"Spaß",      options:["Spaß","Spass","Spas"],          sentence:"Das Spielen macht viel ___." },
+      { correct:"spielen",   options:["spielen","spiehlen","spilen"],   sentence:"Wir ___ heute Fußball." },
+      { correct:"Spinne",    options:["Spinne","Spine","Spinnne"],      sentence:"Die ___ baut ein Netz." },
+      { correct:"Spiegel",   options:["Spiegel","Spigel","Spieegel"],   sentence:"Ich schaue in den ___." },
+      { correct:"Sprache",   options:["Sprache","Sprahce","Spraache"],  sentence:"Deutsch ist eine schöne ___." },
+      { correct:"springen",  options:["springen","springgen","springgen"], sentence:"Die Kinder ___ über die Pfütze." },
+      { correct:"Spatz",     options:["Spatz","Spattz","Spazz"],        sentence:"Der kleine ___ sitzt auf dem Ast." },
+      { correct:"Spur",      options:["Spur","Szpur","Spuhr"],          sentence:"Der Fuchs hinterlässt eine ___." },
+      { correct:"sparsam",   options:["sparsam","szparsam","spahrsam"], sentence:"Er ist sehr ___ mit seinem Geld." },
+      { correct:"Speck",     options:["Speck","Spek","Szpeck"],         sentence:"In der Pfanne brät der ___." },
+    ]
+  },
+  {
+    id: "st", name: "Wörter mit ST", icon: "⭐", color: "#84cc16", colorLight: "#f7fee7", colorText: "#365314",
+    words: [
+      { correct:"Straße",    options:["Straße","Strase","Strazze"],     sentence:"Die ___ ist heute sehr glatt." },
+      { correct:"stark",     options:["stark","starg","starck"],        sentence:"Der Löwe ist sehr ___." },
+      { correct:"Stunde",    options:["Stunde","Stunnde","Schtunde"],   sentence:"Eine ___ hat sechzig Minuten." },
+      { correct:"Stern",     options:["Stern","Stärn","Stärn"],         sentence:"Am Himmel leuchtet ein ___." },
+      { correct:"still",     options:["still","stil","stiel"],          sentence:"Bitte sei ___!" },
+      { correct:"Stift",     options:["Stift","Stifft","Stibft"],       sentence:"Ich brauche einen neuen ___." },
+      { correct:"Storch",    options:["Storch","Storsch","Storrch"],    sentence:"Der ___ steht auf einem Bein." },
+      { correct:"stehlen",   options:["stehlen","stelen","stählen"],    sentence:"Man darf nichts ___." },
+      { correct:"Strom",     options:["Strom","Stromm","Strowm"],       sentence:"Der ___ fließt ins Meer." },
+      { correct:"Stufe",     options:["Stufe","Stuffe","Stuhfe"],       sentence:"Pass auf die ___ auf!" },
+    ]
+  },
+  {
+    id: "ie", name: "Wörter mit ie", icon: "👁️", color: "#06b6d4", colorLight: "#ecfeff", colorText: "#155e75",
+    words: [
+      { correct:"Biene",     options:["Biene","Bine","Biehne"],         sentence:"Die ___ sammelt fleißig Honig." },
+      { correct:"Wiese",     options:["Wiese","Wise","Wihse"],          sentence:"Auf der ___ blühen viele Blumen." },
+      { correct:"Ziege",     options:["Ziege","Zige","Zihge"],          sentence:"Die ___ meckert laut." },
+      { correct:"fließen",   options:["fließen","fliesen","flissen"],   sentence:"Das Wasser ___ schnell den Berg hinab." },
+      { correct:"Knie",      options:["Knie","Kni","Knieh"],            sentence:"Ich habe mir das ___ aufgeschlagen." },
+      { correct:"Lied",      options:["Lied","Lid","Liehd"],            sentence:"Wir singen ein schönes ___." },
+      { correct:"Spiegel",   options:["Spiegel","Spigel","Spihgel"],    sentence:"Ich sehe mich im ___." },
+      { correct:"Tier",      options:["Tier","Tir","Tiehr"],            sentence:"Das ___ schläft im Zoo." },
+      { correct:"riechen",   options:["riechen","richen","riehchen"],   sentence:"Die Blume ___ sehr schön." },
+      { correct:"viel",      options:["viel","vil","vihl"],             sentence:"Es gibt ___ zu tun heute." },
+    ]
+  },
+  {
+    id: "ck", name: "Wörter mit CK", icon: "🧱", color: "#8b5cf6", colorLight: "#f5f3ff", colorText: "#4c1d95",
+    words: [
+      { correct:"Brücke",    options:["Brücke","Brüke","Brügge"],       sentence:"Wir gehen über die ___." },
+      { correct:"Stück",     options:["Stück","Stük","Stügg"],          sentence:"Ich möchte ein ___ Kuchen." },
+      { correct:"Zucker",    options:["Zucker","Zuker","Zugger"],       sentence:"Im Tee ist ___ drin." },
+      { correct:"Jacke",     options:["Jacke","Jake","Jagg"],           sentence:"Ich ziehe meine ___ an." },
+      { correct:"Socke",     options:["Socke","Soke","Sogg"],           sentence:"Eine ___ fehlt in meiner Schublade." },
+      { correct:"drücken",   options:["drücken","drüken","drüggen"],    sentence:"Bitte ___ auf den Knopf." },
+      { correct:"Fleck",     options:["Fleck","Flek","Flegg"],          sentence:"Da ist ein ___ auf meinem Hemd." },
+      { correct:"Ecke",      options:["Ecke","Eke","Egge"],             sentence:"Biege an der nächsten ___ ab." },
+      { correct:"Rucksack",  options:["Rucksack","Ruksack","Ruckzack"], sentence:"Mein ___ ist sehr schwer." },
+      { correct:"Dackel",    options:["Dackel","Dakel","Daggel"],       sentence:"Der ___ ist ein kleiner Hund." },
+    ]
+  },
+  {
+    id: "v", name: "Wörter mit V/v", icon: "🔤", color: "#ec4899", colorLight: "#fdf2f8", colorText: "#831843",
+    words: [
+      { correct:"Vogel",     options:["Vogel","Fogel","Wogel"],         sentence:"Der ___ singt am frühen Morgen." },
+      { correct:"Vater",     options:["Vater","Fater","Wahter"],        sentence:"Mein ___ liest die Zeitung." },
+      { correct:"vier",      options:["vier","fier","vieher"],          sentence:"Ich habe ___ Geschwister." },
+      { correct:"Vase",      options:["Vase","Fase","Vahse"],           sentence:"Die ___ steht auf dem Tisch." },
+      { correct:"Volk",      options:["Volk","Folk","Wolck"],           sentence:"Ein ___ feiert zusammen." },
+      { correct:"voll",      options:["voll","foll","woll"],            sentence:"Der Eimer ist ___." },
+      { correct:"Vers",      options:["Vers","Fers","Wers"],            sentence:"Sie liest einen schönen ___." },
+      { correct:"von",       options:["von","fon","won"],               sentence:"Das Buch ist ___ mir." },
+      { correct:"viele",     options:["viele","fiele","wiele"],         sentence:"Es gibt ___ bunte Blumen." },
+      { correct:"Veilchen",  options:["Veilchen","Feilchen","Weilchen"],sentence:"Das ___ duftet wunderschön." },
+    ]
+  },
+  {
+    id: "ss", name: "Wörter mit ss", icon: "📝", color: "#14b8a6", colorLight: "#f0fdfa", colorText: "#134e4a",
+    words: [
+      { correct:"Wasser",    options:["Wasser","Waßer","Wazer"],        sentence:"Ich trinke jeden Tag viel ___." },
+      { correct:"essen",     options:["essen","eßen","esen"],           sentence:"Wir ___ heute Pizza." },
+      { correct:"Klasse",    options:["Klasse","Klaße","Klase"],        sentence:"Unsere ___ macht einen Ausflug." },
+      { correct:"Tasse",     options:["Tasse","Taße","Tase"],           sentence:"Die heiße ___ Kakao schmeckt gut." },
+      { correct:"Nuss",      options:["Nuss","Nuß","Nus"],              sentence:"Das Eichhörnchen knabbert an der ___." },
+      { correct:"küssen",    options:["küssen","küßen","küsen"],        sentence:"Mama möchte das Kind ___." },
+      { correct:"Fluss",     options:["Fluss","Fluß","Flus"],           sentence:"Im ___ schwimmen viele Fische." },
+      { correct:"Gasse",     options:["Gasse","Gaße","Gase"],           sentence:"Durch die enge ___ geht es zum Markt." },
+      { correct:"besser",    options:["besser","beßer","beser"],        sentence:"Heute geht es mir viel ___." },
+      { correct:"Kassette",  options:["Kassette","Kaßette","Kasette"],  sentence:"Auf der alten ___ ist Musik." },
+    ]
+  },
+  {
+    id: "auslaut", name: "Auslautverhärtung b/d", icon: "🔴", color: "#ef4444", colorLight: "#fef2f2", colorText: "#7f1d1d",
+    words: [
+      { correct:"Hund",      options:["Hund","Hunt","Hundt"],           sentence:"Der ___ wedelt mit dem Schwanz." },
+      { correct:"Wald",      options:["Wald","Walt","Waldt"],           sentence:"Im ___ leben viele Tiere." },
+      { correct:"Bild",      options:["Bild","Bilt","Bildt"],           sentence:"Das ___ hängt an der Wand." },
+      { correct:"Laub",      options:["Laub","Laut","Laubt"],           sentence:"Das bunte ___ fällt im Herbst." },
+      { correct:"Korb",      options:["Korb","Korp","Korbt"],           sentence:"Im ___ liegen frische Äpfel." },
+      { correct:"Kind",      options:["Kind","Kint","Kindt"],           sentence:"Das ___ lacht fröhlich." },
+      { correct:"Dieb",      options:["Dieb","Diet","Diebt"],           sentence:"Der ___ wurde gefasst." },
+      { correct:"Kleid",     options:["Kleid","Kleit","Kleidt"],        sentence:"Das bunte ___ steht ihr gut." },
+      { correct:"Abend",     options:["Abend","Abent","Abendt"],        sentence:"Am ___ lesen wir ein Buch." },
+      { correct:"Urlaub",    options:["Urlaub","Urlaut","Urlaubt"],     sentence:"Im ___ fahren wir ans Meer." },
+    ]
+  },
+  {
+    id: "doppelkon", name: "Doppelte Konsonanten", icon: "✌️", color: "#f59e0b", colorLight: "#fffbeb", colorText: "#78350f",
+    words: [
+      { correct:"Mutter",    options:["Mutter","Muter","Mutterr"],      sentence:"Meine ___ backt leckeren Kuchen." },
+      { correct:"Sonne",     options:["Sonne","Sone","Sonnne"],         sentence:"Die ___ scheint heute warm." },
+      { correct:"Teller",    options:["Teller","Teler","Tellerr"],      sentence:"Der ___ steht auf dem Tisch." },
+      { correct:"Wanne",     options:["Wanne","Wane","Wannne"],         sentence:"Ich bade in der ___." },
+      { correct:"Puppe",     options:["Puppe","Pupe","Puppne"],         sentence:"Die ___ hat blaue Augen." },
+      { correct:"rennen",    options:["rennen","renen","rennnen"],      sentence:"Wir ___ um die Wette." },
+      { correct:"Hammer",    options:["Hammer","Hamer","Hammmerr"],     sentence:"Mit dem ___ schlägt man Nägel ein." },
+      { correct:"Zimmer",    options:["Zimmer","Zimer","Zimmerr"],      sentence:"Mein ___ ist aufgeräumt." },
+      { correct:"Koffer",    options:["Koffer","Kofer","Kofferr"],      sentence:"Ich packe meinen ___ für den Urlaub." },
+      { correct:"kommen",    options:["kommen","kommen","kommen"],      sentence:"Wann ___ die Gäste an?" },
+    ]
+  },
+  {
+    id: "ae", name: "Wörter mit Ä und Äu", icon: "🅰️", color: "#d946ef", colorLight: "#fdf4ff", colorText: "#701a75",
+    words: [
+      { correct:"Bäcker",    options:["Bäcker","Becker","Baecker"],     sentence:"Beim ___ kaufen wir frisches Brot." },
+      { correct:"Zähne",     options:["Zähne","Zeehne","Zahne"],        sentence:"Ich putze meine ___ zweimal täglich." },
+      { correct:"Mädchen",   options:["Mädchen","Medchen","Maedchen"],  sentence:"Das ___ lacht fröhlich." },
+      { correct:"Bäume",     options:["Bäume","Beume","Baume"],         sentence:"Im Park stehen viele ___." },
+      { correct:"Häuser",    options:["Häuser","Heuser","Hauser"],      sentence:"In der Altstadt gibt es alte ___." },
+      { correct:"Träume",    options:["Träume","Treume","Traume"],      sentence:"Schöne ___ wünschen wir dir!" },
+      { correct:"Käse",      options:["Käse","Kese","Kase"],            sentence:"Ich mag ___ auf dem Brot." },
+      { correct:"Mäuse",     options:["Mäuse","Meuse","Mause"],         sentence:"Die kleinen ___ schleichen durch die Wand." },
+      { correct:"zählen",    options:["zählen","zehlen","zahlen"],      sentence:"Wir ___ gemeinsam bis zehn." },
+      { correct:"Läden",     options:["Läden","Leden","Laden"],         sentence:"Am Samstag haben viele ___ offen." },
+    ]
+  },
+  {
+    id: "dehn_h", name: "Dehnungs-H", icon: "🔍", color: "#0ea5e9", colorLight: "#f0f9ff", colorText: "#0c4a6e",
+    words: [
+      { correct:"Bahnhof",   options:["Bahnhof","Bandof","Bahnof"],     sentence:"Am ___ warten die Züge." },
+      { correct:"Stahl",     options:["Stahl","Stal","Staal"],          sentence:"Das Messer ist aus ___." },
+      { correct:"Mehl",      options:["Mehl","Mel","Meel"],             sentence:"Aus ___ bäckt man Brot." },
+      { correct:"Stuhl",     options:["Stuhl","Stul","Stuul"],          sentence:"Ich sitze auf dem ___." },
+      { correct:"fahren",    options:["fahren","faren","faahren"],      sentence:"Wir ___ mit dem Zug." },
+      { correct:"Höhle",     options:["Höhle","Höle","Hoehle"],         sentence:"Der Bär schläft in der ___." },
+      { correct:"Kohl",      options:["Kohl","Kol","Kool"],             sentence:"Auf dem Feld wächst ___." },
+      { correct:"wohnen",    options:["wohnen","wonen","woohnen"],      sentence:"Wir ___ in einem Haus." },
+      { correct:"Zahl",      options:["Zahl","Zal","Zaal"],             sentence:"Die ___ 7 ist meine Glückszahl." },
+      { correct:"drehen",    options:["drehen","dreen","drahen"],       sentence:"Das Rad ___ sich im Wind." },
+    ]
+  },
+];
+
+// ══════════════════════════════════════════════════════════════
+// STATE
+// ══════════════════════════════════════════════════════════════
+let queue = [];          // aktuelle Fragenqueue
+let repeatQueue = [];    // falsch beantwortete Fragen
+let qIdx = 0;
+let score = 0;
+let isRepeatRound = false;
+let currentTopicId = null;
+let totalFirst = 0;
+let allWrongWords = [];  // für Ergebnis-Anzeige
+
+// ══════════════════════════════════════════════════════════════
+// BUILD MENU
+// ══════════════════════════════════════════════════════════════
+function buildMenu() {
+  const grid = document.getElementById('topic-grid');
+  grid.innerHTML = '';
+  TOPICS.forEach(t => {
+    const btn = document.createElement('div');
+    btn.className = 'topic-btn';
+    btn.style.setProperty('--c', t.color);
+    btn.innerHTML = `<span class="t-icon">${t.icon}</span>
+      <div class="t-name">${t.name}</div>
+      <div class="t-count">${t.words.length} Wörter</div>`;
+    btn.onclick = () => startGame(t.id);
+    grid.appendChild(btn);
+  });
+}
+
+// ══════════════════════════════════════════════════════════════
+// GAME START
+// ══════════════════════════════════════════════════════════════
+function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
+
+function startGame(topicId) {
+  currentTopicId = topicId;
+  isRepeatRound = false;
+  repeatQueue = [];
+  allWrongWords = [];
+  score = 0;
+
+  if (topicId === 'all') {
+    const all = TOPICS.flatMap(t => t.words.map(w => ({ ...w, topicId: t.id })));
+    queue = shuffle(all);
+  } else {
+    const topic = TOPICS.find(t => t.id === topicId);
+    queue = shuffle(topic.words.map(w => ({ ...w, topicId: topicId })));
+  }
+  totalFirst = queue.length;
+  qIdx = 0;
+
+  showScreen('game-screen');
+  renderQ();
+}
+
+function startRepeatRound() {
+  isRepeatRound = true;
+  queue = shuffle([...repeatQueue]);
+  repeatQueue = [];
+  qIdx = 0;
+  renderQ();
+}
+
+// ══════════════════════════════════════════════════════════════
+// RENDER QUESTION
+// ══════════════════════════════════════════════════════════════
+function renderQ() {
+  const q = queue[qIdx];
+  const total = queue.length;
+  const topic = TOPICS.find(t => t.id === q.topicId);
+
+  document.getElementById('tb-title').textContent = isRepeatRound ? '🔁 Wiederholung' : topic.name;
+  document.getElementById('tb-sub').textContent = `Frage ${qIdx+1} / ${total}`;
+  document.getElementById('tb-hearts').textContent = `⭐ ${score}`;
+  document.getElementById('prog-fill').style.width = (qIdx / total * 100) + '%';
+
+  // Repeat badge
+  const slot = document.getElementById('repeat-badge-slot');
+  slot.innerHTML = isRepeatRound
+    ? `<div class="repeat-badge">🔁 Wiederholungsrunde – diese gingen schief!</div>`
+    : '';
+
+  // Topic pill
+  const pill = document.getElementById('q-pill');
+  pill.textContent = topic.name;
+  pill.style.background = topic.colorLight;
+  pill.style.color = topic.colorText;
+  pill.style.setProperty('--c', topic.colorLight);
+
+  // Sentence
+  const sentEl = document.getElementById('q-sentence');
+  sentEl.innerHTML = q.sentence.replace('___', `<span class="blank">?</span>`);
+
+  // Options (shuffle, max 3)
+  const opts = shuffle(q.options.slice(0, 3));
+  const optsEl = document.getElementById('opts');
+  optsEl.innerHTML = '';
+  opts.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn';
+    btn.textContent = opt;
+    btn.onclick = () => pick(btn, opt, q.correct, q);
+    optsEl.appendChild(btn);
+  });
+
+  document.getElementById('feedback-area').innerHTML = '';
+}
+
+// ══════════════════════════════════════════════════════════════
+// ANSWER
+// ══════════════════════════════════════════════════════════════
+const GOODS = ['Super! 🎉','Richtig! ⭐','Genau! 🌈','Klasse! 💪','Toll! 🏆','Wunderbar! 🌟','Top! 🎊'];
+const BADS  = ['Nicht ganz... 💭','Fast! Schau genau hin 🔍','Ups! 🤔','Noch nicht ganz 💡'];
+
+function pick(btn, chosen, correct, q) {
+  if (document.querySelectorAll('.opt-btn')[0].disabled) return;
+  document.querySelectorAll('.opt-btn').forEach(b => b.disabled = true);
+
+  const isCorrect = chosen === correct;
+
+  if (isCorrect) {
+    btn.classList.add('correct');
+    score++;
+    showFb(true, GOODS[Math.floor(Math.random()*GOODS.length)], correct);
+  } else {
+    btn.classList.add('wrong');
+    // show correct
+    document.querySelectorAll('.opt-btn').forEach(b => {
+      if (b.textContent === correct) b.classList.add('correct');
+    });
+    // add to repeat queue (avoid duplicates)
+    if (!repeatQueue.find(r => r.correct === q.correct)) {
+      repeatQueue.push({ ...q });
+    }
+    if (!allWrongWords.includes(q.correct)) allWrongWords.push(q.correct);
+    showFb(false, BADS[Math.floor(Math.random()*BADS.length)], correct);
+  }
+
+  // update sentence with correct answer
+  const sentEl = document.getElementById('q-sentence');
+  sentEl.innerHTML = q.sentence.replace('___', `<span class="blank" style="color:${isCorrect?'#16a34a':'#dc2626'};border-color:${isCorrect?'#16a34a':'#dc2626'}">${correct}</span>`);
+}
+
+function showFb(ok, msg, correct) {
+  const area = document.getElementById('feedback-area');
+  const isLast = qIdx + 1 >= queue.length;
+  let next = '';
+
+  if (!isLast) {
+    next = `<button class="next-btn" onclick="advance()">Weiter →</button>`;
+  } else {
+    const hasRepeat = repeatQueue.length > 0;
+    next = hasRepeat
+      ? `<button class="next-btn" onclick="advance()">🔁 Jetzt wiederholen!</button>`
+      : `<button class="next-btn" onclick="advance()">🏁 Ergebnis sehen</button>`;
+  }
+
+  area.innerHTML = `<div class="fb-msg ${ok?'good':'bad'}">${msg}</div>${next}`;
+}
+
+function advance() {
+  qIdx++;
+  if (qIdx >= queue.length) {
+    // Check if repeat round needed
+    if (repeatQueue.length > 0 && !isRepeatRound) {
+      startRepeatRound();
+    } else if (repeatQueue.length > 0 && isRepeatRound) {
+      // more repeats needed
+      startRepeatRound();
+    } else {
+      showResult();
+    }
+  } else {
+    renderQ();
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// RESULT
+// ══════════════════════════════════════════════════════════════
+function showResult() {
+  showScreen('result-screen');
+  const total = totalFirst;
+  const correct = total - allWrongWords.length;
+  const pct = correct / total;
+
+  let emoji, title, sub;
+  if (pct === 1)      { emoji='🏆'; title='Perfekt!';        sub='Alle Wörter richtig – du bist ein Rechtschreib-Profi!' }
+  else if (pct >= .8) { emoji='🌟'; title='Super gemacht!';   sub='Fast alles richtig – weiter so!' }
+  else if (pct >= .6) { emoji='😊'; title='Gut gemacht!';     sub='Übe die schwierigen Wörter nochmal!' }
+  else if (pct >= .4) { emoji='💪'; title='Weiter üben!';     sub='Noch nicht ganz – du schaffst das!' }
+  else                { emoji='📚'; title='Nicht aufgeben!';  sub='Lies die Wörter nochmal genau an und versuch es erneut!' }
+
+  document.getElementById('r-emoji').textContent = emoji;
+  document.getElementById('r-title').textContent = title;
+  document.getElementById('r-score').textContent = `${correct}/${total}`;
+  document.getElementById('r-stars').textContent = pct===1?'⭐⭐⭐':pct>=.7?'⭐⭐':'⭐';
+  document.getElementById('r-sub').textContent = sub;
+
+  // Wrong words list
+  const ws = document.getElementById('wrong-summary');
+  const wl = document.getElementById('wrong-list');
+  const retryBtn = document.getElementById('r-retry');
+  if (allWrongWords.length > 0) {
+    ws.style.display = '';
+    wl.innerHTML = allWrongWords.map(w => `<div class="wrong-chip">${w}</div>`).join('');
+    retryBtn.style.display = '';
+  } else {
+    ws.style.display = 'none';
+    retryBtn.style.display = 'none';
+  }
+
+  if (pct >= .7) launchConfetti();
+}
+
+function retryWrong() {
+  // Start a fresh game with only the wrong words
+  isRepeatRound = true;
+  queue = allWrongWords.map(w => {
+    for (const t of TOPICS) {
+      const found = t.words.find(x => x.correct === w);
+      if (found) return { ...found, topicId: t.id };
+    }
+    return null;
+  }).filter(Boolean);
+  queue = shuffle(queue);
+  repeatQueue = [];
+  allWrongWords = [];
+  score = 0;
+  qIdx = 0;
+  totalFirst = queue.length;
+  showScreen('game-screen');
+  renderQ();
+}
+
+function retryAll() { startGame(currentTopicId); }
+function goMenu() { showScreen('menu-screen'); }
+
+// ══════════════════════════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function launchConfetti() {
+  const colors = ['#667eea','#f472b6','#fbbf24','#34d399','#fb923c','#a78bfa'];
+  for (let i = 0; i < 65; i++) {
+    const c = document.createElement('div');
+    c.className = 'cp';
+    c.style.cssText = `left:${Math.random()*100}vw;background:${colors[~~(Math.random()*colors.length)]};animation-delay:${Math.random()*2}s;animation-duration:${2+Math.random()*2}s;transform:rotateZ(${Math.random()*360}deg)`;
+    document.body.appendChild(c);
+    setTimeout(()=>c.remove(), 4500);
+  }
+}
+
+// ── INIT ──
+buildMenu();
+</script>
+</body>
+</html>
